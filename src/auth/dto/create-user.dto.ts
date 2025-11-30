@@ -7,12 +7,14 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { IsCI } from '../validations/is-ci-valid';
 
 export class CreateUserDto {
   @IsString()
   @IsNotEmpty({ message: 'CI is required' })
   @MinLength(11, { message: 'CI must be 11 characters' })
   @MaxLength(11)
+  @IsCI()
   ci: string;
 
   @IsString()

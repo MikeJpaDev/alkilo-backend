@@ -7,12 +7,14 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { Casa } from 'src/casas/entities/casa.entity';
 import {
   BeforeInsert,
   BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -71,6 +73,9 @@ export class User {
   //ToDo faltan Roles
   @Column('text', { array: true, default: ['user'] })
   roles: string[];
+
+  @OneToMany(() => Casa, (casa) => casa.createdBy)
+  houses: Casa;
 
   @BeforeInsert()
   checkfieldsBeforeInsert() {
