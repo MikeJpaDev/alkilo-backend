@@ -8,6 +8,8 @@ import {
   MinLength,
 } from 'class-validator';
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -69,4 +71,14 @@ export class User {
   //ToDo faltan Roles
   @Column('text', { array: true, default: ['user'] })
   roles: string[];
+
+  @BeforeInsert()
+  checkfieldsBeforeInsert() {
+    this.email = this.email.toLowerCase().trim();
+  }
+
+  @BeforeUpdate()
+  checkfieldsBeforeUpdate() {
+    this.email = this.email.toLowerCase().trim();
+  }
 }
