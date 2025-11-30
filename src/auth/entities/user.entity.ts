@@ -75,7 +75,7 @@ export class User {
   roles: string[];
 
   @OneToMany(() => Casa, (casa) => casa.createdBy)
-  houses: Casa;
+  casas: Casa[];
 
   @BeforeInsert()
   checkfieldsBeforeInsert() {

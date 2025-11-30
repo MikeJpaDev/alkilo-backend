@@ -17,13 +17,15 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ContactPhone } from './contact-phone.entity';
+import { Municipality } from './municipality.entity';
+import { Province } from './provinces.entity';
 
 @Entity('casas')
 export class Casa {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @ManyToOne(() => User, (user) => user.houses, { cascade: true })
+  @ManyToOne(() => User, (user) => user.casas, { nullable: false })
   createdBy: User;
 
   @Column({ length: 200 })
@@ -67,4 +69,12 @@ export class Casa {
 
   @OneToMany(() => ContactPhone, (contactPhone) => contactPhone.houseId)
   contacts: ContactPhone[];
+
+  @ManyToOne(() => Municipality, (municipio) => municipio.casasId, {
+    eager: true,
+  })
+  munipalityId: Municipality;
+
+  @ManyToOne(() => Province, (provincia) => provincia.casasId, { eager: true })
+  provinceId: Province;
 }

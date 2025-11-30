@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { IsString, IsNotEmpty, MaxLength } from 'class-validator';
 import { Municipality } from './municipality.entity';
+import { Casa } from './casa.entity';
 
 @Entity('provinces')
 export class Province {
@@ -17,4 +18,7 @@ export class Province {
     cascade: true,
   })
   municipalities: Municipality;
+
+  @OneToMany(() => Casa, (casa) => casa.munipalityId)
+  casasId: Casa[];
 }

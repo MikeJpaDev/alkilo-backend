@@ -1,6 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { IsString, IsNotEmpty, MaxLength } from 'class-validator';
 import { Province } from './provinces.entity';
+import { Casa } from './casa.entity';
 
 @Entity('municipalities')
 export class Municipality {
@@ -13,6 +20,11 @@ export class Municipality {
   @MaxLength(100, { message: 'Name must be less than 100 characters' })
   name: string;
 
-  @ManyToOne(() => Province, (province) => province.municipalities)
+  @ManyToOne(() => Province, (province) => province.municipalities, {
+    eager: true,
+  })
   province: Province;
+
+  @OneToMany(() => Casa, (casa) => casa.munipalityId)
+  casasId: Casa[];
 }

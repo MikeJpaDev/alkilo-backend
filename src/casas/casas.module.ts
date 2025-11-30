@@ -6,10 +6,12 @@ import { Casa } from './entities/casa.entity';
 import { Province } from './entities/provinces.entity';
 import { Municipality } from './entities/municipality.entity';
 import { ContactPhone } from './entities/contact-phone.entity';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Casa, Province, Municipality, ContactPhone]),
+    AuthModule,
   ],
   controllers: [CasasController],
   providers: [CasasService],
