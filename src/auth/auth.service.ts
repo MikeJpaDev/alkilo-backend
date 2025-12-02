@@ -14,6 +14,7 @@ import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ValidRoles } from './interfaces/valid-roles';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class AuthService {
@@ -191,8 +192,12 @@ export class AuthService {
     return user;
   }
 
-  async findAll() {
-    const users = await this.userRepository.find();
+  async findAll(paginationDto: PaginationDto) {
+    const { limit = 10, offset = 0 } = paginationDto;
+    const users = await this.userRepository.find({
+      take: limit,
+      skip: offset,
+    });
     return users;
   }
 

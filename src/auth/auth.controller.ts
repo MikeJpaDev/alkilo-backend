@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -15,6 +16,7 @@ import { Auth } from './decorators/auth.decorator';
 import { getUser } from './decorators/get-user.decorator';
 import { User } from './entities/user.entity';
 import { ValidRoles } from './interfaces/valid-roles';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -32,8 +34,8 @@ export class AuthController {
 
   @Auth(ValidRoles.admin, ValidRoles.superUser)
   @Get()
-  findAll() {
-    return this.authService.findAll();
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.authService.findAll(paginationDto);
   }
 
   @Auth(ValidRoles.admin, ValidRoles.superUser)
