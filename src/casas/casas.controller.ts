@@ -9,6 +9,7 @@ import {
   UploadedFiles,
   UseInterceptors,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
@@ -18,6 +19,9 @@ import { UpdateCasaDto } from './dto/update-casa.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { getUser } from 'src/auth/decorators/get-user.decorator';
 import { User } from 'src/auth/entities/user.entity';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { SearchSuggestionsDto } from './dto/search-suggestions.dto';
+import { SearchCasasDto } from './dto/search-casas.dto';
 
 @ApiTags('Casas')
 @Controller('casas')
@@ -36,9 +40,25 @@ export class CasasController {
 
   @Get()
   @ApiOperation({ summary: 'Obtener todas las casas disponibles' })
-  @ApiResponse({ status: 200, description: 'Lista de casas' })
-  findAll() {
-    return this.casasService.findAll();
+  @ApiResponse({ status: 200, description: 'Lista de casas con paginación' })
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.casasService.findAll(paginationDto);
+  }
+
+  @Get('search/suggestions')
+  @ApiOperation({ summary: 'Buscar sugerencias de casas' })
+  @ApiResponse({ status: 200, description: 'Lista de sugerencias ordenadas por relevancia' })
+  @ApiResponse({ status: 400, description: 'Parámetros inválidos' })
+  searchSuggestions(@Query() searchDto: SearchSuggestionsDto) {
+    return this.casasService.searchSuggestions(searchDto);
+  }
+
+  @Get('search/results')
+  @ApiOperation({ summary: 'Buscar casas con filtros y ordenamiento' })
+  @ApiResponse({ status: 200, description: 'Casas encontradas ordenadas según criterio' })
+  @ApiResponse({ status: 400, description: 'Parámetros inválidos' })
+  searchCasas(@Query() searchDto: SearchCasasDto) {
+    return this.casasService.searchCasas(searchDto);
   }
 
   @Get(':id')
@@ -46,7 +66,7 @@ export class CasasController {
   @ApiResponse({ status: 200, description: 'Casa encontrada' })
   @ApiResponse({ status: 404, description: 'Casa no encontrada' })
   findOne(@Param('id') id: string) {
-    return this.casasService.findOne(+id);
+    return this.casasService.findOne(id);
   }
 
   @Auth()
@@ -55,8 +75,13 @@ export class CasasController {
   @ApiOperation({ summary: 'Actualizar una casa' })
   @ApiResponse({ status: 200, description: 'Casa actualizada' })
   @ApiResponse({ status: 404, description: 'Casa no encontrada' })
-  update(@Param('id') id: string, @Body() updateCasaDto: UpdateCasaDto) {
-    return this.casasService.update(+id, updateCasaDto);
+  @ApiResponse({ status: 403, description: 'No tienes permiso para actualizar esta casa' })
+  update(
+    @Param('id') id: string,
+    @Body() updateCasaDto: UpdateCasaDto,
+    @getUser() user: User,
+  ) {
+    return this.casasService.update(id, updateCasaDto, user);
   }
 
   @Auth()
@@ -65,8 +90,9 @@ export class CasasController {
   @ApiOperation({ summary: 'Eliminar una casa' })
   @ApiResponse({ status: 200, description: 'Casa eliminada' })
   @ApiResponse({ status: 404, description: 'Casa no encontrada' })
-  remove(@Param('id') id: string) {
-    return this.casasService.remove(+id);
+  @ApiResponse({ status: 403, description: 'No tienes permiso para eliminar esta casa' })
+  remove(@Param('id') id: string, @getUser() user: User) {
+    return this.casasService.remove(id, user);
   }
 
   @Auth()
@@ -98,7 +124,7 @@ export class CasasController {
     if (!files || files.length === 0) {
       throw new BadRequestException('No files provided');
     }
-    return this.casasService.uploadImages(+id, files, user);
+    return this.casasService.uploadImages(id, files, user);
   }
 
   @Auth()
@@ -111,6 +137,6 @@ export class CasasController {
     @Param('fileName') fileName: string,
     @getUser() user: User,
   ) {
-    return this.casasService.deleteImage(+id, fileName, user);
+    return this.casasService.deleteImage(id, fileName, user);
   }
 }

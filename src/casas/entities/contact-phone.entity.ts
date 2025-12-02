@@ -12,6 +12,6 @@ export class ContactPhone {
   @Column('text', { nullable: false })
   number: string;
 
-  @ManyToOne(() => Casa, (casa) => casa.contacts)
+  @ManyToOne(() => Casa, (casa) => casa.contacts, { onDelete: 'CASCADE' })
   houseId: Casa;
 }

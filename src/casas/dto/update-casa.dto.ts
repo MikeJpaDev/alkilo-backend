@@ -1,13 +1,16 @@
 import {
-  IsDecimal,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
+  IsPositive,
   IsString,
+  Max,
   MaxLength,
   Min,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class UpdateCasaDto {
   @ApiPropertyOptional({
@@ -33,10 +36,14 @@ export class UpdateCasaDto {
     description: 'Precio por noche en CUP',
     example: 3500,
     minimum: 0,
+    maximum: 1000000,
   })
   @IsOptional()
-  @IsDecimal({}, { message: 'Price must be a decimal number' })
+  @IsPositive()
+  @Max(1000000)
+  @IsNumber({}, { message: 'Price must be a decimal number' })
   @Min(0, { message: 'Price must be positive' })
+  @Type(() => Number)
   pricePerNight?: number;
 
   @ApiPropertyOptional({

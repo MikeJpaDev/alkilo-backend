@@ -1,8 +1,9 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { ProvincesService } from './provinces.service';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { ValidRoles } from 'src/auth/interfaces/valid-roles';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @ApiTags('Provinces')
 @Controller('provinces')
@@ -13,10 +14,10 @@ export class ProvincesController {
   @Get()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Obtener todas las provincias' })
-  @ApiResponse({ status: 200, description: 'Lista de provincias' })
+  @ApiResponse({ status: 200, description: 'Lista de provincias con paginación' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
-  findAll() {
-    return this.provincesService.findAll();
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.provincesService.findAll(paginationDto);
   }
 
   @Auth(ValidRoles.user, ValidRoles.admin, ValidRoles.superUser)

@@ -9,14 +9,15 @@ import { Province } from './entities/provinces.entity';
 import { Municipality } from './entities/municipality.entity';
 import { ContactPhone } from './entities/contact-phone.entity';
 import { AuthModule } from 'src/auth/auth.module';
-import { SeedService } from './seeds/seed.service';
+import { DataSeedService } from './seeds/data-seed.service';
+import { User } from 'src/auth/entities/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Casa, Province, Municipality, ContactPhone]),
+    TypeOrmModule.forFeature([Casa, Province, Municipality, ContactPhone, User]),
     AuthModule,
   ],
   controllers: [CasasController, ProvincesController],
-  providers: [CasasService, ProvincesService, SeedService],
+  providers: [CasasService, ProvincesService, DataSeedService],
 })
 export class CasasModule {}

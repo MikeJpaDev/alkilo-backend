@@ -15,6 +15,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ValidRoles } from './interfaces/valid-roles';
 import { MinioService } from 'src/common/minio/minio.service';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class AuthService {
@@ -77,12 +78,20 @@ export class AuthService {
 
       const tokenReturn = this.getJwtToken({ id: user.id });
 
+      // Generar URL pre-firmada si tiene foto de perfil
+      let profilePictureUrl: string | null = null;
+      if (user.profilePicture) {
+        profilePictureUrl = await this.minioService.getPresignedUrl(user.profilePicture);
+      }
+
       delete (user as Partial<User>).password;
       delete (user as Partial<User>).isActive;
       delete (user as Partial<User>).createdAt;
+      delete (user as Partial<User>).profilePicture;
 
       return {
         ...user,
+        profilePictureUrl,
         token: tokenReturn,
       };
     } catch (error) {
@@ -141,11 +150,21 @@ export class AuthService {
         ...updateUserDto,
       });
 
+      // Generar URL pre-firmada si tiene foto de perfil
+      let profilePictureUrl: string | null = null;
+      if (updatedUser.profilePicture) {
+        profilePictureUrl = await this.minioService.getPresignedUrl(updatedUser.profilePicture);
+      }
+
       delete (updatedUser as Partial<User>).password;
       delete (updatedUser as Partial<User>).isActive;
       delete (updatedUser as Partial<User>).createdAt;
+      delete (updatedUser as Partial<User>).profilePicture;
 
-      return updatedUser;
+      return {
+        ...updatedUser,
+        profilePictureUrl,
+      };
     } catch (error) {
       this.handleDBErrors(error);
     }
@@ -190,12 +209,59 @@ export class AuthService {
     const user = await this.userRepository.findOneBy({ id });
     if (!user) throw new BadRequestException(`User with id: ${id} not found`);
 
-    return user;
+    // Generar URL pre-firmada si tiene foto de perfil
+    let profilePictureUrl: string | null = null;
+    if (user.profilePicture) {
+      profilePictureUrl = await this.minioService.getPresignedUrl(user.profilePicture);
+    }
+
+    // Eliminar el campo profilePicture de la respuesta
+    delete (user as Partial<User>).profilePicture;
+
+    return {
+      ...user,
+      profilePictureUrl,
+    };
   }
 
-  async findAll() {
-    const users = await this.userRepository.find();
-    return users;
+  async findAll(paginationDto: PaginationDto) {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [users, total] = await this.userRepository.findAndCount({
+      take: limit,
+      skip: skip,
+    });
+    
+    // Generar URLs pre-firmadas para cada usuario que tenga foto de perfil
+    const usersWithUrls = await Promise.all(
+      users.map(async (user) => {
+        let profilePictureUrl: string | null = null;
+        if (user.profilePicture) {
+          profilePictureUrl = await this.minioService.getPresignedUrl(user.profilePicture);
+        }
+        
+        // Eliminar el campo profilePicture de la respuesta
+        delete (user as Partial<User>).profilePicture;
+        
+        return {
+          ...user,
+          profilePictureUrl,
+        };
+      }),
+    );
+
+    return {
+      data: usersWithUrls,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        hasPrevious: page > 1,
+        hasNext: page < Math.ceil(total / limit),
+      },
+    };
   }
 
   async uploadProfilePicture(file: Express.Multer.File, user: User) {

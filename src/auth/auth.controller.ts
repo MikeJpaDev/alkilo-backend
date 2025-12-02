@@ -9,6 +9,7 @@ import {
   UploadedFile,
   UseInterceptors,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
@@ -20,6 +21,7 @@ import { Auth } from './decorators/auth.decorator';
 import { getUser } from './decorators/get-user.decorator';
 import { User } from './entities/user.entity';
 import { ValidRoles } from './interfaces/valid-roles';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @ApiTags('Autenticación')
 @Controller('auth')
@@ -46,10 +48,10 @@ export class AuthController {
   @Get()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Obtener todos los usuarios (Solo admin)' })
-  @ApiResponse({ status: 200, description: 'Lista de usuarios' })
+  @ApiResponse({ status: 200, description: 'Lista de usuarios con paginación' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
-  findAll() {
-    return this.authService.findAll();
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.authService.findAll(paginationDto);
   }
 
   @Auth(ValidRoles.admin, ValidRoles.superUser)
