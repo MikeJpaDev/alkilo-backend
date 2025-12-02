@@ -8,6 +8,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { Casa } from 'src/casas/entities/casa.entity';
+import { Review } from 'src/review/entities/review.entity';
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -76,6 +77,9 @@ export class User {
 
   @OneToMany(() => Casa, (casa) => casa.createdBy)
   casas: Casa[];
+
+  @OneToMany(() => Review, (reviews) => reviews.userFk)
+  reviews: Review[];
 
   @BeforeInsert()
   checkfieldsBeforeInsert() {

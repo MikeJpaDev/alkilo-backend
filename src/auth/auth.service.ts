@@ -124,7 +124,10 @@ export class AuthService {
           throw new BadRequestException('Cannor change roles for superUser');
       }
 
-      const isUpdate = await this.userRepository.update(updateId, updateUserDto);
+      const isUpdate = await this.userRepository.update(
+        updateId,
+        updateUserDto,
+      );
 
       if (isUpdate.affected === 0) {
         throw new BadRequestException(

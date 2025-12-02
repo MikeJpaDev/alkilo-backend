@@ -38,11 +38,14 @@ export class CasasService {
         createdBy: user, // Relación con el usuario que crea la casa
         munipalityId: municipio, // Relación con el municipio
         provinceId: municipio.province, // Relación con la provincia
+        contacts: createCasaDto.contacts, // Asignar los contactos
       });
 
       await this.casaRepository.save(casa); // Guarda la nueva casa en la base de datos
 
       delete (casa as Partial<Casa>).createdBy;
+
+      console.log(createCasaDto.contacts);
 
       return casa;
     } catch (error) {

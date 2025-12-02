@@ -1,8 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { ReviewController } from './review.controller';
+import { AuthModule } from 'src/auth/auth.module';
+import { Review } from './entities/review.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
+  imports: [TypeOrmModule.forFeature([Review]), AuthModule],
   controllers: [ReviewController],
   providers: [ReviewService],
 })

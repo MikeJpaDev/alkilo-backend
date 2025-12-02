@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  ArrayNotEmpty,
   IsArray,
   IsInt,
   IsNotEmpty,
@@ -13,7 +14,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ContactPhone } from '../entities/contact-phone.entity';
-import { Municipality } from '../entities/municipality.entity';
+import { ContactPhoneDto } from './create-contact-phone.dto';
 
 export class CreateCasaDto {
   @IsString({ message: 'Title must be a string' })
@@ -48,11 +49,11 @@ export class CreateCasaDto {
   @IsNotEmpty({ message: 'Address is required' })
   address: string;
 
-  @IsOptional()
   @IsArray()
+  @ArrayNotEmpty({ message: 'At least one contact is required' })
   @ValidateNested({ each: true })
-  @Type(() => ContactPhone)
-  contacts: ContactPhone[];
+  @Type(() => ContactPhoneDto)
+  contacts: ContactPhoneDto[];
 
   @IsInt()
   @IsPositive()

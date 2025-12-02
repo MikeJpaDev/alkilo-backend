@@ -19,6 +19,7 @@ import {
 import { ContactPhone } from './contact-phone.entity';
 import { Municipality } from './municipality.entity';
 import { Province } from './provinces.entity';
+import { Review } from 'src/review/entities/review.entity';
 
 @Entity('casas')
 export class Casa {
@@ -67,7 +68,10 @@ export class Casa {
   @CreateDateColumn({ name: 'created_at' })
   createDate: Date;
 
-  @OneToMany(() => ContactPhone, (contactPhone) => contactPhone.houseId)
+  @OneToMany(() => ContactPhone, (contactPhone) => contactPhone.houseId, {
+    cascade: true,
+    eager: true,
+  })
   contacts: ContactPhone[];
 
   @ManyToOne(() => Municipality, (municipio) => municipio.casasId, {
@@ -77,4 +81,10 @@ export class Casa {
 
   @ManyToOne(() => Province, (provincia) => provincia.casasId, { eager: true })
   provinceId: Province;
+
+  @OneToMany(() => Review, (review) => review.casaFk, {
+    cascade: true,
+    eager: true,
+  })
+  reviews: Review[];
 }

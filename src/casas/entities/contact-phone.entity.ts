@@ -12,6 +12,6 @@ export class ContactPhone {
   @Column('text', { nullable: false })
   number: number;
 
-  @ManyToOne(() => Casa, (casa) => casa.contacts, { cascade: true })
+  @ManyToOne(() => Casa, (casa) => casa.contacts)
   houseId: Casa;
 }
