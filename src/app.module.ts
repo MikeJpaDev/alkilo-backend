@@ -4,7 +4,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { CasasModule } from './casas/casas.module';
 import { ReviewModule } from './review/review.module';
-import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -24,7 +23,6 @@ import { CommonModule } from './common/common.module';
     AuthModule,
     CasasModule,
     ReviewModule,
-    CommonModule,
   ],
   controllers: [],
   providers: [],
