@@ -18,6 +18,7 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { SearchSuggestionsDto } from './dto/search-suggestions.dto';
 import { SearchCasasDto } from './dto/search-casas.dto';
 import { ILike } from 'typeorm';
+import { Review } from 'src/review/entities/review.entity';
 
 @Injectable()
 export class CasasService {
@@ -28,6 +29,8 @@ export class CasasService {
     private readonly municipalityRepository: Repository<Municipality>,
     @InjectRepository(Province)
     private readonly provinceRepository: Repository<Province>,
+    @InjectRepository(Review)
+    private readonly reviewRepository: Repository<Review>,
     private readonly minioService: MinioService,
   ) {}
 
@@ -118,7 +121,7 @@ export class CasasService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, currentUser?: User) {
     try {
       const casa = await this.casaRepository.findOne({
         where: { id: id },
@@ -137,10 +140,57 @@ export class CasasService {
         throw new NotFoundException(`Casa with ID ${id} not found`);
       }
 
+      // Obtener todas las reseñas de esta casa
+      const reviews = await this.reviewRepository.find({
+        where: { casaFk: { id: id } },
+        relations: ['userFk'],
+        select: {
+          userFk: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        order: { createdAt: 'DESC' },
+      });
+
+      // Verificar si el usuario actual ya ha comentado (solo si está autenticado)
+      let userHasReviewed: boolean | null = null;
+      let userReviewId: number | null = null;
+      if (currentUser) {
+        const userReview = reviews.find(
+          (review) => review.userFk.id === currentUser.id,
+        );
+        if (userReview) {
+          userHasReviewed = true;
+          userReviewId = userReview.id;
+        } else {
+          userHasReviewed = false;
+        }
+      }
+
+      // Formatear las reseñas
+      const formattedReviews = reviews.map((review) => ({
+        id: review.id,
+        rating: review.rating,
+        comment: review.comment,
+        createdAt: review.createdAt,
+        user: review.userFk,
+      }));
+
+      // Calcular promedio de calificaciones
+      const averageRating =
+        reviews.length > 0
+          ? reviews.reduce((sum, review) => sum + review.rating, 0) /
+            reviews.length
+          : 0;
+
       // Generar URLs pre-firmadas para las imágenes
       let imageUrls: { fileName: string; url: string }[] = [];
       if (casa.images && casa.images.length > 0) {
-        const presignedUrls = await this.minioService.getMultiplePresignedUrls(casa.images);
+        const presignedUrls = await this.minioService.getMultiplePresignedUrls(
+          casa.images,
+        );
         imageUrls = casa.images.map((fileName, index) => ({
           fileName,
           url: presignedUrls[index],
@@ -153,6 +203,11 @@ export class CasasService {
       return {
         ...casa,
         imageUrls,
+        reviews: formattedReviews,
+        reviewsCount: reviews.length,
+        averageRating: Math.round(averageRating * 10) / 10, // Redondear a 1 decimal
+        userHasReviewed,
+        userReviewId,
       };
     } catch (error) {
       if (error instanceof NotFoundException) {

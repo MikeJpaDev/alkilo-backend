@@ -5,10 +5,12 @@ import { User } from 'src/auth/entities/user.entity';
 import { Casa } from '../entities/casa.entity';
 import { Municipality } from '../entities/municipality.entity';
 import { Province } from '../entities/provinces.entity';
+import { Review } from 'src/review/entities/review.entity';
 import * as bcrypt from 'bcrypt';
 import { usersSeedData } from 'src/auth/seeds/users.seed';
 import { casasSeedData } from './casas.seed';
 import { provincesMunicipalitiesData } from './provinces-municipalities.seed';
+import { reviewsSeedData } from 'src/review/seeds/reviews.seed';
 
 @Injectable()
 export class DataSeedService implements OnModuleInit {
@@ -21,12 +23,15 @@ export class DataSeedService implements OnModuleInit {
     private readonly municipalityRepository: Repository<Municipality>,
     @InjectRepository(Province)
     private readonly provinceRepository: Repository<Province>,
+    @InjectRepository(Review)
+    private readonly reviewRepository: Repository<Review>,
   ) {}
 
   async onModuleInit() {
     await this.seedProvincesAndMunicipalities();
     await this.seedUsers();
     await this.seedCasas();
+    await this.seedReviews();
   }
 
   private async seedProvincesAndMunicipalities() {
@@ -127,5 +132,61 @@ export class DataSeedService implements OnModuleInit {
     }
 
     console.log(`✓ ${casasSeedData.length} casas seeded successfully`);
+  }
+
+  private async seedReviews() {
+    const count = await this.reviewRepository.count();
+    if (count > 0) {
+      console.log('✓ Reviews already seeded');
+      return;
+    }
+
+    console.log('🌱 Seeding reviews...');
+
+    for (const reviewData of reviewsSeedData) {
+      // Buscar el usuario por email
+      const user = await this.userRepository.findOne({
+        where: { email: reviewData.userEmail },
+      });
+
+      if (!user) {
+        console.warn(`⚠️  User with email ${reviewData.userEmail} not found, skipping review`);
+        continue;
+      }
+
+      // Buscar la casa por título
+      const casa = await this.casaRepository.findOne({
+        where: { title: reviewData.casaTitle },
+      });
+
+      if (!casa) {
+        console.warn(`⚠️  Casa "${reviewData.casaTitle}" not found, skipping review`);
+        continue;
+      }
+
+      // Verificar si el usuario ya comentó esta casa
+      const existingReview = await this.reviewRepository.findOne({
+        where: {
+          userFk: { id: user.id },
+          casaFk: { id: casa.id },
+        },
+      });
+
+      if (existingReview) {
+        continue; // Saltar si ya existe una review
+      }
+
+      // Crear la review
+      const review = this.reviewRepository.create({
+        rating: reviewData.rating,
+        comment: reviewData.comment,
+        userFk: user,
+        casaFk: casa,
+      });
+
+      await this.reviewRepository.save(review);
+    }
+
+    console.log(`✓ Reviews seeded successfully`);
   }
 }

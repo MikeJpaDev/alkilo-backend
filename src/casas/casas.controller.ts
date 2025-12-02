@@ -18,6 +18,7 @@ import { CreateCasaDto } from './dto/create-casa.dto';
 import { UpdateCasaDto } from './dto/update-casa.dto';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { getUser } from 'src/auth/decorators/get-user.decorator';
+import { GetUserOptional } from 'src/auth/decorators/get-user-optional.decorator';
 import { User } from 'src/auth/entities/user.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { SearchSuggestionsDto } from './dto/search-suggestions.dto';
@@ -39,34 +40,46 @@ export class CasasController {
   }
 
   @Get()
+  @Auth()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Obtener todas las casas disponibles' })
   @ApiResponse({ status: 200, description: 'Lista de casas con paginación' })
-  findAll(@Query() paginationDto: PaginationDto) {
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  findAll(@Query() paginationDto: PaginationDto, @getUser() user: User) {
     return this.casasService.findAll(paginationDto);
   }
 
   @Get('search/suggestions')
+  @Auth()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Buscar sugerencias de casas' })
   @ApiResponse({ status: 200, description: 'Lista de sugerencias ordenadas por relevancia' })
   @ApiResponse({ status: 400, description: 'Parámetros inválidos' })
-  searchSuggestions(@Query() searchDto: SearchSuggestionsDto) {
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  searchSuggestions(@Query() searchDto: SearchSuggestionsDto, @getUser() user: User) {
     return this.casasService.searchSuggestions(searchDto);
   }
 
   @Get('search/results')
+  @Auth()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Buscar casas con filtros y ordenamiento' })
   @ApiResponse({ status: 200, description: 'Casas encontradas ordenadas según criterio' })
   @ApiResponse({ status: 400, description: 'Parámetros inválidos' })
-  searchCasas(@Query() searchDto: SearchCasasDto) {
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  searchCasas(@Query() searchDto: SearchCasasDto, @getUser() user: User) {
     return this.casasService.searchCasas(searchDto);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Obtener una casa por ID' })
-  @ApiResponse({ status: 200, description: 'Casa encontrada' })
+  @Auth()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Obtener una casa por ID con sus reseñas' })
+  @ApiResponse({ status: 200, description: 'Casa encontrada con lista de reseñas' })
   @ApiResponse({ status: 404, description: 'Casa no encontrada' })
-  findOne(@Param('id') id: string) {
-    return this.casasService.findOne(id);
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  findOne(@Param('id') id: string, @getUser() user: User) {
+    return this.casasService.findOne(id, user);
   }
 
   @Auth()
