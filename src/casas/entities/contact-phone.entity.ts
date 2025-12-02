@@ -10,7 +10,7 @@ export class ContactPhone {
   name: string;
 
   @Column('text', { nullable: false })
-  number: number;
+  number: string;
 
   @ManyToOne(() => Casa, (casa) => casa.contacts)
   houseId: Casa;
