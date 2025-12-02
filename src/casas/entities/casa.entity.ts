@@ -65,6 +65,9 @@ export class Casa {
   @IsNotEmpty({ message: 'Address is required' })
   address: string;
 
+  @Column('text', { array: true, default: [] })
+  images: string[];
+
   @CreateDateColumn({ name: 'created_at' })
   createDate: Date;
 

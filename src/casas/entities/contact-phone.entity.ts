@@ -10,8 +10,8 @@ export class ContactPhone {
   name: string;
 
   @Column('text', { nullable: false })
-  number: number;
+  number: string;
 
-  @ManyToOne(() => Casa, (casa) => casa.contacts)
+  @ManyToOne(() => Casa, (casa) => casa.contacts, { onDelete: 'CASCADE' })
   houseId: Casa;
 }
