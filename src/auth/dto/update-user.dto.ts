@@ -1,6 +1,6 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateUserDto } from './create-user.dto';
 import {
+  ArrayNotEmpty,
+  IsArray,
   IsEmail,
   IsEnum,
   IsNotEmpty,
@@ -17,21 +17,25 @@ export class UpdateUserDto {
   @IsNotEmpty({ message: 'CI is required' })
   @MinLength(11, { message: 'CI must be 11 characters' })
   @MaxLength(11)
-  ci: string;
+  @IsOptional()
+  ci?: string;
 
   @IsString()
   @IsNotEmpty({ message: 'First name is required' })
   @MaxLength(100)
-  firstName: string;
+  @IsOptional()
+  firstName?: string;
 
   @IsString()
   @IsNotEmpty({ message: 'Last name is required' })
   @MaxLength(100)
-  lastName: string;
+  @IsOptional()
+  lastName?: string;
 
   @IsEmail({}, { message: 'Invalid email format' })
   @IsNotEmpty({ message: 'Email is required' })
-  email: string;
+  @IsOptional()
+  email?: string;
 
   @IsString()
   @IsNotEmpty({ message: 'Password is required' })
@@ -44,13 +48,19 @@ export class UpdateUserDto {
         'Password must contain uppercase, lowercase, number and special character',
     },
   )
-  password: string;
+  @IsOptional()
+  password?: string;
 
   @IsOptional()
   @IsString()
   address?: string;
 
   @IsOptional()
-  @IsEnum(ValidRoles)
-  role?: ValidRoles;
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsEnum(ValidRoles, {
+    each: true,
+    message: `Role must be user, admin or superUser`,
+  })
+  roles?: ValidRoles[];
 }

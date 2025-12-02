@@ -1,7 +1,16 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { Auth } from './decorators/auth.decorator';
 import { getUser } from './decorators/get-user.decorator';
 import { User } from './entities/user.entity';
@@ -21,12 +30,31 @@ export class AuthController {
     return this.authService.login(loginUserDto);
   }
 
-  @Get('test')
-  @Auth(ValidRoles.admin)
-  testAuth(@getUser() user: User) {
-    return {
-      ok: true,
-      user,
-    };
+  @Auth(ValidRoles.admin, ValidRoles.superUser)
+  @Get()
+  findAll() {
+    return this.authService.findAll();
+  }
+
+  @Auth(ValidRoles.admin, ValidRoles.superUser)
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.authService.findOne(id);
+  }
+
+  @Auth()
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @getUser() user: User,
+  ) {
+    return this.authService.updateUser(id, updateUserDto, user);
+  }
+
+  @Auth()
+  @Delete(':id')
+  remove(@Param('id') id: string, @getUser() user: User) {
+    return this.authService.remove(id, user);
   }
 }
