@@ -14,6 +14,7 @@ import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ValidRoles } from './interfaces/valid-roles';
+import { MinioService } from 'src/common/minio/minio.service';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,7 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
+    private readonly minioService: MinioService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -194,6 +196,60 @@ export class AuthService {
   async findAll() {
     const users = await this.userRepository.find();
     return users;
+  }
+
+  async uploadProfilePicture(file: Express.Multer.File, user: User) {
+    try {
+      // Si el usuario ya tiene una foto de perfil, eliminarla
+      if (user.profilePicture) {
+        await this.minioService.deleteImage(user.profilePicture);
+      }
+
+      // Subir la nueva imagen
+      const fileName = await this.minioService.uploadImage(
+        file.buffer,
+        file.originalname,
+        'profile-pictures',
+      );
+
+      // Actualizar el usuario con el nombre del archivo
+      await this.userRepository.update(user.id, {
+        profilePicture: fileName,
+      });
+
+      // Generar URL pre-firmada
+      const presignedUrl = await this.minioService.getPresignedUrl(fileName);
+
+      return {
+        message: 'Profile picture uploaded successfully',
+        fileName,
+        url: presignedUrl,
+      };
+    } catch (error) {
+      this.handleDBErrors(error);
+    }
+  }
+
+  async deleteProfilePicture(user: User) {
+    try {
+      if (!user.profilePicture) {
+        throw new BadRequestException('User does not have a profile picture');
+      }
+
+      // Eliminar la imagen de MinIO
+      await this.minioService.deleteImage(user.profilePicture);
+
+      // Actualizar el usuario
+      await this.userRepository.update(user.id, {
+        profilePicture: undefined,
+      });
+
+      return {
+        message: 'Profile picture deleted successfully',
+      };
+    } catch (error) {
+      this.handleDBErrors(error);
+    }
   }
 
   private getJwtToken(payload: JwtPayload) {

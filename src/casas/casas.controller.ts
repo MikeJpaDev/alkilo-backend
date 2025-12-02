@@ -6,8 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  UploadedFiles,
+  UseInterceptors,
+  BadRequestException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { CasasService } from './casas.service';
 import { CreateCasaDto } from './dto/create-casa.dto';
 import { UpdateCasaDto } from './dto/update-casa.dto';
@@ -63,5 +67,50 @@ export class CasasController {
   @ApiResponse({ status: 404, description: 'Casa no encontrada' })
   remove(@Param('id') id: string) {
     return this.casasService.remove(+id);
+  }
+
+  @Auth()
+  @Post(':id/images')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Subir imágenes a una casa' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'Imágenes subidas exitosamente' })
+  @UseInterceptors(FilesInterceptor('files', 10))
+  async uploadImages(
+    @Param('id') id: string,
+    @UploadedFiles() files: Express.Multer.File[],
+    @getUser() user: User,
+  ) {
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No files provided');
+    }
+    return this.casasService.uploadImages(+id, files, user);
+  }
+
+  @Auth()
+  @Delete(':id/images/:fileName')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Eliminar una imagen de una casa' })
+  @ApiResponse({ status: 200, description: 'Imagen eliminada' })
+  deleteImage(
+    @Param('id') id: string,
+    @Param('fileName') fileName: string,
+    @getUser() user: User,
+  ) {
+    return this.casasService.deleteImage(+id, fileName, user);
   }
 }

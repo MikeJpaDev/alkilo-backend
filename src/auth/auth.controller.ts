@@ -6,8 +6,12 @@ import {
   Param,
   Patch,
   Post,
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
@@ -80,5 +84,42 @@ export class AuthController {
   @ApiResponse({ status: 403, description: 'No tienes permisos' })
   remove(@Param('id') id: string, @getUser() user: User) {
     return this.authService.remove(id, user);
+  }
+
+  @Auth()
+  @Post('profile-picture')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Subir foto de perfil' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'Foto de perfil actualizada' })
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadProfilePicture(
+    @UploadedFile() file: Express.Multer.File,
+    @getUser() user: User,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+    return this.authService.uploadProfilePicture(file, user);
+  }
+
+  @Auth()
+  @Delete('profile-picture')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Eliminar foto de perfil' })
+  @ApiResponse({ status: 200, description: 'Foto de perfil eliminada' })
+  deleteProfilePicture(@getUser() user: User) {
+    return this.authService.deleteProfilePicture(user);
   }
 }

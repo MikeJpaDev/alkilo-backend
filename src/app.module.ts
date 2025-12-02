@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { CasasModule } from './casas/casas.module';
 import { ReviewModule } from './review/review.module';
+import { MinioModule } from './common/minio/minio.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ReviewModule } from './review/review.module';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    MinioModule,
     AuthModule,
     CasasModule,
     ReviewModule,
