@@ -32,6 +32,23 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "Swagger (Documentación API):" -ForegroundColor Magenta
     Write-Host "   http://localhost:3000/api/docs" -ForegroundColor White
     Write-Host ""
+    
+   
+    
+    Write-Host "========================================" -ForegroundColor Cyan
+    Write-Host "  Conectar a la base de datos" -ForegroundColor Cyan
+    Write-Host "========================================" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "Usando psql:" -ForegroundColor Yellow
+    Write-Host "   docker exec -it alkilo-postgres psql -U postgres -d alkilo_db" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Usando herramientas como DBeaver, pgAdmin, etc:" -ForegroundColor Yellow
+    Write-Host "   Host: localhost" -ForegroundColor White
+    Write-Host "   Port: 5432" -ForegroundColor White
+    Write-Host "   Database: alkilo_db" -ForegroundColor White
+    Write-Host "   Username: postgres" -ForegroundColor White
+    Write-Host "   Password: postgres" -ForegroundColor White
+    Write-Host ""
 } else {
     Write-Host ""
     Write-Host "Error al iniciar los contenedores" -ForegroundColor Red
