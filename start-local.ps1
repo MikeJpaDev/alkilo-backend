@@ -14,6 +14,7 @@ if (-not (Test-Path "docker-compose.yml")) {
 
 # Ejecuta docker-compose
 Write-Host "Iniciando contenedores..." -ForegroundColor Green
+docker-compose build
 docker-compose up -d
 
 if ($LASTEXITCODE -eq 0) {

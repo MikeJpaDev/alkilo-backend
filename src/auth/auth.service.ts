@@ -16,6 +16,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ValidRoles } from './interfaces/valid-roles';
 import { MinioService } from 'src/common/minio/minio.service';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -201,7 +202,7 @@ export class AuthService {
 
       return { message: `User with id: ${deleteId} has been deleted` };
     } catch (error) {
-      this.handleDBErrors(error);
+      throw new BadRequestException(error);
     }
   }
 
