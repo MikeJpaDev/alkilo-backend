@@ -10,6 +10,7 @@ import {
   UseInterceptors,
   BadRequestException,
   Query,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
@@ -84,7 +85,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Eliminar usuario' })
   @ApiResponse({ status: 200, description: 'Usuario eliminado' })
   @ApiResponse({ status: 403, description: 'No tienes permisos' })
-  remove(@Param('id') id: string, @getUser() user: User) {
+  remove(@Param('id', ParseUUIDPipe) id: string, @getUser() user: User) {
     return this.authService.remove(id, user);
   }
 

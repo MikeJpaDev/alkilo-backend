@@ -54,6 +54,9 @@ services:
       MINIO_BUCKET_NAME: alkilo-uploads
     ports:
       - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
     depends_on:
       - postgres
       - minio
