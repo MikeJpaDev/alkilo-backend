@@ -11,7 +11,10 @@ import {
   BadRequestException,
   Query,
   ParseUUIDPipe,
+  Req,
+  Headers,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -43,6 +46,24 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Credenciales inválidas' })
   loginUser(@Body() loginUserDto: LoginUserDto) {
     return this.authService.login(loginUserDto);
+  }
+
+  @Auth()
+  @Post('logout')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Cerrar sesión' })
+  @ApiResponse({ status: 200, description: 'Sesión cerrada exitosamente' })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  logout(
+    @getUser() user: User,
+    @Headers('authorization') authorization: string,
+    @Req() request: Request,
+  ) {
+    const token = authorization?.replace('Bearer ', '');
+    const ipAddress = (request.ip || request.socket.remoteAddress) as string;
+    const userAgent = request.headers['user-agent'];
+    
+    return this.authService.logout(user, token, ipAddress, userAgent);
   }
 
   @Auth(ValidRoles.admin, ValidRoles.superUser)

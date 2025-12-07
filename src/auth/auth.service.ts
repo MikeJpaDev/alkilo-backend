@@ -6,8 +6,10 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, LessThan } from 'typeorm';
 import { User } from './entities/user.entity';
+import { LogoutEvent } from './entities/logout-event.entity';
+import { TokenBlacklist } from './entities/token-blacklist.entity';
 import * as bcrypt from 'bcrypt';
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
@@ -23,6 +25,10 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(LogoutEvent)
+    private readonly logoutEventRepository: Repository<LogoutEvent>,
+    @InjectRepository(TokenBlacklist)
+    private readonly tokenBlacklistRepository: Repository<TokenBlacklist>,
     private readonly jwtService: JwtService,
     private readonly minioService: MinioService,
   ) {}
@@ -98,6 +104,60 @@ export class AuthService {
     } catch (error) {
       this.handleDBErrors(error);
     }
+  }
+
+  async logout(user: User, token: string, ipAddress?: string, userAgent?: string) {
+    try {
+      if (!token) {
+        throw new BadRequestException('Token not provided');
+      }
+
+      // Decodificar el token para obtener la fecha de expiración
+      let decodedToken: any;
+      try {
+        decodedToken = this.jwtService.decode(token);
+      } catch (error) {
+        throw new BadRequestException('Invalid token');
+      }
+
+      const tokenExpiresAt = new Date(decodedToken.exp * 1000);
+
+      // 1. Registrar el evento de logout
+      const logoutEvent = this.logoutEventRepository.create({
+        user,
+        token,
+        tokenExpiresAt,
+        ipAddress,
+        userAgent,
+      });
+      await this.logoutEventRepository.save(logoutEvent);
+
+      // 2. Agregar el token a la lista negra
+      const blacklistedToken = this.tokenBlacklistRepository.create({
+        token,
+        userId: user.id,
+        expiresAt: tokenExpiresAt,
+        reason: 'logout',
+      });
+      await this.tokenBlacklistRepository.save(blacklistedToken);
+
+      return {
+        message: 'Logout successful',
+        userId: user.id,
+        timestamp: new Date().toISOString(),
+        tokenBlacklisted: true,
+      };
+    } catch (error) {
+      this.handleDBErrors(error);
+    }
+  }
+
+  // Método para verificar si un token está en la lista negra
+  async isTokenBlacklisted(token: string): Promise<boolean> {
+    const blacklisted = await this.tokenBlacklistRepository.findOne({
+      where: { token },
+    });
+    return !!blacklisted;
   }
 
   async updateUser(updateId: string, updateUserDto: UpdateUserDto, user: User) {
