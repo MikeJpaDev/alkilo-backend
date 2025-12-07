@@ -65,4 +65,16 @@ export class PaginationDto {
   @IsOptional()
   @IsString()
   direccion?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filtrar por cantidad de estrellas (rating)',
+    example: 5,
+    minimum: 1,
+    maximum: 5,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Type(() => Number)
+  rating?: number;
 }

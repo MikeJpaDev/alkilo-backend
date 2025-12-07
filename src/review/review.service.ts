@@ -91,10 +91,18 @@ export class ReviewService {
 
   async findAll(paginationDto: PaginationDto) {
     try {
-      const { page = 1, limit = 10 } = paginationDto;
+      const { page = 1, limit = 10, rating } = paginationDto;
       const skip = (page - 1) * limit;
 
+      // Construir el objeto where dinámicamente
+      const where: any = {};
+      
+      if (rating !== undefined) {
+        where.rating = rating;
+      }
+
       const [reviews, total] = await this.reviewRepository.findAndCount({
+        where,
         relations: ['userFk', 'casaFk'],
         select: {
           userFk: {
