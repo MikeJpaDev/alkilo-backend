@@ -160,7 +160,7 @@ export class CasasService {
         take: limit,
         skip: skip,
         order: {
-          createdAt: 'DESC',
+          createDate: 'DESC',
         },
       });
 
