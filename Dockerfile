@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalar todas las dependencias (incluyendo devDependencies)
-RUN pnpm install
+RUN npm install
 
 # Copiar el código fuente
 COPY . .
@@ -16,4 +16,4 @@ COPY . .
 EXPOSE 3000
 
 # Comando para iniciar en modo desarrollo con hot-reload
-CMD ["pnpm", "run", "start:dev"]
+CMD ["npm", "run", "start:dev"]
