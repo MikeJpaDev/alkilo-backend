@@ -151,19 +151,15 @@ export class MinioService implements OnModuleInit {
    * Genera una URL pre-firmada para acceder a un archivo
    * @param fileName - Nombre del archivo en MinIO
    * @param expirySeconds - Tiempo de expiración en segundos (por defecto 24 horas)
-   * @returns URL pre-firmada
+   * @returns URL pre-firmada o pública
    */
   async getPresignedUrl(
     fileName: string,
     expirySeconds: number = 24 * 60 * 60,
   ): Promise<string> {
     try {
-      const url = await this.minioClient.presignedGetObject(
-        this.bucketName,
-        fileName,
-        expirySeconds,
-      );
-      return url;
+      // Usar URL pública ya que el bucket tiene política pública
+      return this.getPublicUrl(fileName);
     } catch (error) {
       this.logger.error(`Error generating presigned URL: ${error.message}`);
       throw error;
@@ -192,10 +188,12 @@ export class MinioService implements OnModuleInit {
    * @returns URL pública
    */
   getPublicUrl(fileName: string): string {
+    // Usar localhost en lugar del hostname del contenedor para acceso externo
     const protocol = this.configService.get<string>('MINIO_USE_SSL') === 'true' ? 'https' : 'http';
-    const endpoint = this.configService.get<string>('MINIO_ENDPOINT');
     const port = this.configService.get<string>('MINIO_PORT');
-    return `${protocol}://${endpoint}:${port}/${this.bucketName}/${fileName}`;
+    // Para desarrollo, usar localhost. En producción, debería venir de una variable de entorno
+    const publicEndpoint = this.configService.get<string>('MINIO_PUBLIC_ENDPOINT') || 'localhost';
+    return `${protocol}://${publicEndpoint}:${port}/${this.bucketName}/${fileName}`;
   }
 
   /**

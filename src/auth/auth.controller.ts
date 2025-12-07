@@ -66,6 +66,16 @@ export class AuthController {
     return this.authService.logout(user, token, ipAddress, userAgent);
   }
 
+  @Auth()
+  @Get('user/me')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Obtener información del usuario autenticado' })
+  @ApiResponse({ status: 200, description: 'Información del usuario' })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  getMe(@getUser() user: User) {
+    return this.authService.getMe(user);
+  }
+
   @Auth(ValidRoles.admin, ValidRoles.superUser)
   @Get()
   @ApiBearerAuth()

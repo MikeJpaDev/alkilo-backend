@@ -3,6 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -100,6 +101,45 @@ export class AuthService {
         ...user,
         profilePictureUrl,
         token: tokenReturn,
+      };
+    } catch (error) {
+      this.handleDBErrors(error);
+    }
+  }
+
+  async getMe(user: User) {
+    try {
+      // Buscar el usuario completo con toda su información
+      const fullUser = await this.userRepository.findOne({
+        where: { id: user.id },
+        select: {
+          id: true,
+          ci: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          address: true,
+          profilePicture: true,
+          roles: true,
+          createdAt: true,
+        },
+      });
+
+      if (!fullUser) {
+        throw new NotFoundException('User not found');
+      }
+
+      // Generar URL pre-firmada si tiene foto de perfil
+      let profilePictureUrl: string | null = null;
+      if (fullUser.profilePicture) {
+        profilePictureUrl = await this.minioService.getPresignedUrl(fullUser.profilePicture);
+      }
+
+      delete (fullUser as Partial<User>).profilePicture;
+
+      return {
+        ...fullUser,
+        profilePictureUrl,
       };
     } catch (error) {
       this.handleDBErrors(error);
