@@ -8,12 +8,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   // CORS Configuration
-  app.enableCors({
-    origin: true, // En producción, especifica los dominios permitidos
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  });
+  app.enableCors();
 
   app.useGlobalPipes(
     new ValidationPipe({

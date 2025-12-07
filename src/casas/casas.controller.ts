@@ -40,46 +40,35 @@ export class CasasController {
   }
 
   @Get()
-  @Auth()
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Obtener todas las casas disponibles' })
   @ApiResponse({ status: 200, description: 'Lista de casas con paginación' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  findAll(@Query() paginationDto: PaginationDto, @getUser() user: User) {
+  findAll(@Query() paginationDto: PaginationDto) {
     return this.casasService.findAll(paginationDto);
   }
 
   @Get('search/suggestions')
-  @Auth()
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Buscar sugerencias de casas' })
   @ApiResponse({ status: 200, description: 'Lista de sugerencias ordenadas por relevancia' })
   @ApiResponse({ status: 400, description: 'Parámetros inválidos' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  searchSuggestions(@Query() searchDto: SearchSuggestionsDto, @getUser() user: User) {
+  searchSuggestions(@Query() searchDto: SearchSuggestionsDto) {
     return this.casasService.searchSuggestions(searchDto);
   }
 
   @Get('search/results')
-  @Auth()
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Buscar casas con filtros y ordenamiento' })
   @ApiResponse({ status: 200, description: 'Casas encontradas ordenadas según criterio' })
   @ApiResponse({ status: 400, description: 'Parámetros inválidos' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
-  searchCasas(@Query() searchDto: SearchCasasDto, @getUser() user: User) {
+  searchCasas(@Query() searchDto: SearchCasasDto) {
     return this.casasService.searchCasas(searchDto);
   }
 
   @Get(':id')
-  @Auth()
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Obtener una casa por ID con sus reseñas' })
   @ApiResponse({ status: 200, description: 'Casa encontrada con lista de reseñas' })
   @ApiResponse({ status: 404, description: 'Casa no encontrada' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  findOne(@Param('id') id: string, @getUser() user: User) {
-    return this.casasService.findOne(id, user);
+  findOne(@Param('id') id: string) {
+    return this.casasService.findOne(id);
   }
 
   @Auth()
