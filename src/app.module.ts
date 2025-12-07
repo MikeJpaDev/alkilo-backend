@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { CasasModule } from './casas/casas.module';
 import { ReviewModule } from './review/review.module';
 import { MinioModule } from './common/minio/minio.module';
+import { DashboardModule } from './common/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { MinioModule } from './common/minio/minio.module';
     AuthModule,
     CasasModule,
     ReviewModule,
+    DashboardModule,
   ],
   controllers: [],
   providers: [],
