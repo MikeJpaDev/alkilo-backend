@@ -9,7 +9,7 @@ import { CreateCasaDto } from './dto/create-casa.dto';
 import { UpdateCasaDto } from './dto/update-casa.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Casa } from './entities/casa.entity';
-import { Repository } from 'typeorm';
+import { Repository, Between, LessThanOrEqual, MoreThanOrEqual, ILike } from 'typeorm';
 import { User } from 'src/auth/entities/user.entity';
 import { Municipality } from './entities/municipality.entity';
 import { Province } from './entities/provinces.entity';
@@ -17,7 +17,6 @@ import { MinioService } from 'src/common/minio/minio.service';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { SearchSuggestionsDto } from './dto/search-suggestions.dto';
 import { SearchCasasDto } from './dto/search-casas.dto';
-import { ILike } from 'typeorm';
 import { Review } from 'src/review/entities/review.entity';
 
 @Injectable()
@@ -66,10 +65,31 @@ export class CasasService {
 
   async findAll(paginationDto: PaginationDto) {
     try {
-      const { page = 1, limit = 10 } = paginationDto;
+      const { page = 1, limit = 10, userId, precioMax, precioMinimo, direccion } = paginationDto;
       const skip = (page - 1) * limit;
 
+      // Construir el objeto where dinámicamente
+      const where: any = {};
+      
+      if (userId) {
+        where.createdBy = { id: userId };
+      }
+      
+      // Filtro de precio
+      if (precioMax !== undefined && precioMinimo !== undefined) {
+        where.price = Between(precioMinimo, precioMax);
+      } else if (precioMinimo !== undefined) {
+        where.price = MoreThanOrEqual(precioMinimo);
+      } else if (precioMax !== undefined) {
+        where.price = LessThanOrEqual(precioMax);
+      }
+      
+      if (direccion) {
+        where.address = ILike(`%${direccion}%`);
+      }
+
       const [casas, total] = await this.casaRepository.findAndCount({
+        where,
         relations: ['createdBy', 'munipalityId', 'provinceId', 'contacts'],
         select: {
           createdBy: {
@@ -96,6 +116,66 @@ export class CasasService {
           }
           
           // Eliminar el campo images de la respuesta
+          delete (casa as any).images;
+          
+          return {
+            ...casa,
+            imageUrls,
+          };
+        }),
+      );
+
+      return {
+        data: casasWithUrls,
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          hasPrevious: page > 1,
+          hasNext: page < Math.ceil(total / limit),
+        },
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  async findByUser(userId: string, paginationDto: PaginationDto) {
+    try {
+      const { page = 1, limit = 10 } = paginationDto;
+      const skip = (page - 1) * limit;
+
+      const [casas, total] = await this.casaRepository.findAndCount({
+        where: { createdBy: { id: userId } },
+        relations: ['createdBy', 'munipalityId', 'provinceId', 'contacts'],
+        select: {
+          createdBy: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        take: limit,
+        skip: skip,
+        order: {
+          createdAt: 'DESC',
+        },
+      });
+
+      // Generar URLs pre-firmadas para las imágenes de cada casa
+      const casasWithUrls = await Promise.all(
+        casas.map(async (casa) => {
+          let imageUrls: { fileName: string; url: string }[] = [];
+          if (casa.images && casa.images.length > 0) {
+            const presignedUrls = await this.minioService.getMultiplePresignedUrls(casa.images);
+            imageUrls = casa.images.map((fileName, index) => ({
+              fileName,
+              url: presignedUrls[index],
+            }));
+          }
+          
           delete (casa as any).images;
           
           return {

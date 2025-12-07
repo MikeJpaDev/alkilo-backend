@@ -46,6 +46,16 @@ export class CasasController {
     return this.casasService.findAll(paginationDto);
   }
 
+  @Auth()
+  @Get('my-casas')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Obtener las casas creadas por el usuario autenticado' })
+  @ApiResponse({ status: 200, description: 'Lista de casas del usuario con paginación' })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  getMyCasas(@Query() paginationDto: PaginationDto, @getUser() user: User) {
+    return this.casasService.findByUser(user.id, paginationDto);
+  }
+
   @Get('search/suggestions')
   @ApiOperation({ summary: 'Buscar sugerencias de casas' })
   @ApiResponse({ status: 200, description: 'Lista de sugerencias ordenadas por relevancia' })
