@@ -308,8 +308,9 @@ export class CasasService {
         throw new NotFoundException(`Casa with ID ${id} not found`);
       }
 
-      // Verificar que el usuario sea el dueño de la casa
-      if (casa.createdBy.id !== user.id) {
+      // Permitir que admin o superUser editen cualquier casa
+      const isAdmin = user.roles?.includes('admin') || user.roles?.includes('superUser');
+      if (casa.createdBy.id !== user.id && !isAdmin) {
         throw new ForbiddenException('You can only update your own properties');
       }
 
@@ -352,8 +353,9 @@ export class CasasService {
         throw new NotFoundException(`Casa with ID ${id} not found`);
       }
 
-      // Verificar que el usuario sea el dueño de la casa
-      if (casa.createdBy.id !== user.id) {
+      // Permitir que admin o superUser eliminen cualquier casa
+      const isAdmin = user.roles?.includes('admin') || user.roles?.includes('superUser');
+      if (casa.createdBy.id !== user.id && !isAdmin) {
         throw new ForbiddenException('You can only delete your own properties');
       }
 
@@ -386,8 +388,9 @@ export class CasasService {
         throw new NotFoundException(`Casa with ID ${id} not found`);
       }
 
-      // Verificar que el usuario sea el dueño de la casa
-      if (casa.createdBy.id !== user.id) {
+      // Permitir que admin y superUser suban imágenes a cualquier casa
+      const isAdmin = user.roles?.includes('admin') || user.roles?.includes('superUser');
+      if (casa.createdBy.id !== user.id && !isAdmin) {
         throw new ForbiddenException('You can only upload images to your own properties');
       }
 
@@ -436,8 +439,9 @@ export class CasasService {
         throw new NotFoundException(`Casa with ID ${id} not found`);
       }
 
-      // Verificar que el usuario sea el dueño de la casa
-      if (casa.createdBy.id !== user.id) {
+      // Permitir que admin y superUser eliminen imágenes de cualquier casa
+      const isAdmin = user.roles?.includes('admin') || user.roles?.includes('superUser');
+      if (casa.createdBy.id !== user.id && !isAdmin) {
         throw new ForbiddenException('You can only delete images from your own properties');
       }
 
