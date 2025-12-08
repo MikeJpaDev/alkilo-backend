@@ -7,12 +7,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
   // CORS Configuration - Debe ir ANTES de setGlobalPrefix
-  app.enableCors({
-    origin: true, 
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  });
+  app.enableCors();
   
   app.setGlobalPrefix('api');
 

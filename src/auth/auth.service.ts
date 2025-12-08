@@ -325,6 +325,22 @@ export class AuthService {
     };
   }
 
+  async checkStatus(user: User) {
+    try {
+      console.log(user);
+      const userBd = await this.userRepository.findOneBy({ id: user.id });
+  
+      const tokenReturn = this.getJwtToken({ id: user.id });
+  
+      return {
+        userBd,
+        tokenReturn,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error)
+    }
+  }
+
   async findAll(paginationDto: PaginationDto) {
     const { page = 1, limit = 10 } = paginationDto;
     const skip = (page - 1) * limit;

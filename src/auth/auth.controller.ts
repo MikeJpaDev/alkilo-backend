@@ -48,6 +48,15 @@ export class AuthController {
     return this.authService.login(loginUserDto);
   }
 
+  @Get('check-status')
+  @ApiOperation({ summary: 'Check-Status' })
+  @ApiResponse({ status: 200, description: 'Login exitoso, retorna token JWT' })
+  @ApiResponse({ status: 401, description: 'Credenciales inválidas' })
+  @Auth()
+  checkStatus(@getUser() user: User) {
+    return this.authService.checkStatus(user);
+  }
+
   @Auth()
   @Post('logout')
   @ApiBearerAuth()
